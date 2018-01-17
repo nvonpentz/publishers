@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180109221848) do
+ActiveRecord::Schema.define(version: 20180117165703) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -127,6 +127,15 @@ ActiveRecord::Schema.define(version: 20180109221848) do
     t.index ["created_at"], name: "index_publishers_on_created_at", using: :btree
     t.index ["email"], name: "index_publishers_on_email", unique: true, using: :btree
     t.index ["pending_email"], name: "index_publishers_on_pending_email", using: :btree
+  end
+
+  create_table "referral_promos", id: :uuid, default: -> { "uuid_generate_v4()" }, force: :cascade do |t|
+    t.uuid     "channel_id",    null: false
+    t.string   "promo_id"
+    t.string   "referral_code"
+    t.datetime "created_at",    null: false
+    t.datetime "updated_at",    null: false
+    t.index ["channel_id"], name: "index_referral_promos_on_channel_id", using: :btree
   end
 
   create_table "site_channel_details", id: :uuid, default: -> { "uuid_generate_v4()" }, force: :cascade do |t|
