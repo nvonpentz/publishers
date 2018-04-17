@@ -6,6 +6,15 @@ $brave-panels-borderRadius: 8px;
 
 .single-panel {
 
+  &--dashboard {
+    margin: 0 15px;
+    justify-content: center;
+    text-align: center;
+    background-color: white;
+    border-radius: $brave-panels-borderRadius;
+    box-shadow: 2px 2px 0px 0px rgba(47,48,50,0.15);
+  }
+
   &--wrapper {
     max-width: $spacer*40;
     min-height: $spacer*32;
@@ -157,6 +166,36 @@ $brave-panels-borderRadius: 8px;
     margin-bottom: $spacer;
     &--secondary {
       text-align: center;
+    }
+  }
+}
+
+.double-panel {
+
+  &--wrapper {
+    @include make-row();
+    justify-content: center;
+    text-align: center;
+  }
+
+  &--content {
+    @include make-col-ready();
+    @include make-col(10);
+
+    background-color: white;
+    border-radius: $brave-panels-borderRadius;
+    box-shadow: 2px 2px 0px 0px rgba(47,48,50,0.15);
+
+    &--split {
+      @include media-breakpoint-up(md) {
+        @include make-col(5);
+    }
+
+      &--no-background { // No white background
+        background-color: unset;
+        border-radius: unset;
+        box-shadow: unset;
+      }
     }
   }
 }
