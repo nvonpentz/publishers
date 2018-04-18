@@ -128,20 +128,14 @@ html
       .md-container.container data-test-modal-container=""
         / FIXME: This provides alternate modal markup during the Bootstrap 4 migration.
         / When Bootstrap 4 becomes the default, this should also become the default.
-        - if content_for?(:head_style_tags) || params.has_key?(:bootstrap4)
-          .single-panel--wrapper.single-panel--wrapper--collapsed
-            .single-panel--content.md-panel
-              .single-panel--padded-content
-                .md-content
-                = link_to "#", class: "md-close js-deny"
-                  = render "application/icon_x"
-        - else
-          .col.col-10.col-md-8.col-sm-10.col-xs-12.col-center.sub-panel.sub-panel--panel--modal
-            .md-content
-            = link_to "#", class: "md-close js-deny"
-              = render "application/icon_x"
+        .single-panel--wrapper.single-panel--wrapper--collapsed
+          .single-panel--content.md-panel
+            .single-panel--padded-content
+              .md-content
+              = link_to "#", class: "md-close js-deny"
+                = render "application/icon_x"
       .md-overlay
-
+      
     /
     / ## Using flash modals in Brave Publishers ##
     /

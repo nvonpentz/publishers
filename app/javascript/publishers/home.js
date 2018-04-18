@@ -7,6 +7,7 @@ import fetch from '../utils/fetchPolyfill';
 import dynamicEllipsis from '../utils/dynamicEllipsis';
 import flash from '../utils/flash';
 
+
 function showPendingContactEmail(pendingEmail) {
   let pendingEmailNotice = document.getElementById('pending_email_notice');
   let showContactEmail = document.getElementById('show_contact_email');

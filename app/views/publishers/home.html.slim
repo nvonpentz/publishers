@@ -16,31 +16,131 @@ noscript
 script id="choose-channel-type" type="text/html"
   = render "home_modal__choose_channel_type"
 
-/ .dashboard--wrapper
-/   .double-panel--wrapper
-/     .double-panel--content
-/       = "(1)"
-/     .double-panel--content
-/       = "(2)"
-/   .single-panel--dashboard
-/     .single-panel--content
-/       ="(3)"
+.dashboard
+  .dashboard--row
+    .dashboard--col.dashboard--col--half
+      .panel.panel--no-background
+        .col.dashboard--balance--image
+          = image_tag("bat-logo@2x.png", class: "", width: 60, height: 57)
+        .col.dashboard--balance--info
+          .row.balance-header=t ".balance_pending"
+          .row.bat-amount
+            = publisher_humanize_balance(current_publisher, "BAT")
+            .bat-code = " BAT"
+          .row = publisher_converted_balance(current_publisher)
+    .dashboard--col.dashboard--col--half
+      - if promo_running?
+        .panel.dashboard--promo
+          .col
+            .row.bat-rocket
+              = image_tag("bat-mercury-patch-jr.png", class: "", height: 100)
+          - if current_publisher.promo_status(promo_running?) == :inactive
+            .col.unactivated.unactivated-main-section
+              .row.limited-time
+                = "Limited Time promo"
+              .row.free-tokens
+                = "Free Tokens"
+              .row.for-referring
+                = "For referring your fans"
+            .col.unactivated.unactivated-button
+              = form_for current_publisher, { method: :get, url: promo_registrations_path } do |f|
+                = f.submit(t("promo.activate.button-dashboard").upcase, class: "btn btn-primary", id: "activate-button")
+          - elsif current_publisher.has_verified_channel?
+            .col.activated
+              .row.promo-title
+                = "REFERRAL PROMO"
+            .col.activated
+              .row.header
+                = "Downloads"
+              .row.value
+                = total_referral_downloads(current_publisher)
+            .col.activated
+              .row.header
+                = "Confirmed"
+              .row.value
+                = confirmed_referral_downloads(current_publisher)
+          - else
+            .row.activated-no-channels
+              .col.alert
+                = image_tag("icn-info.png")
+              .col.add-channel
+                = t("promo.dashboard.add_channel")
+      - else
+        .panel--no-background
+  .dashboard--row
+    .dashboard--col.dashboard--col--half
+      .panel.dashboard--uphold-wallet
+        .col.dashboard--uphold-wallet--icon
+          = image_tag("/assets/wallet@1x.png", class: "")
+        .col.dashboard--uphold-wallet--info
+          .row.header
+            = "Your Uphold Wallet"
+          .row
+            .heavy = "Deposit currency: "
+            .light = " (BAT TO USD)"
+            .light = " (Change)"
+          .row
+            .heavy = "Last deposit date: "
+            = " March 31, 2018"
+          .row
+            = "Last deposit"
+            = ""
+          .row
+            .last-deposit-amount = "240"
+            .last-deposit-bat = " BAT"
+          .row.last-deposit-estimate
+            = "~ Approximately"
+            = " 700 "
+            = " USD"
+          .row
+            = link_to(t(".uphold.check_balance"), uphold_dashboard_url, class: "btn btn-primary", :"data-piwik-action" => "CheckUpholdBalanceClicked", :"data-piwik-name" => "Clicked", :"data-piwik-value" => "Dashboard")
+    .dashboard--col.dashboard--col--half
+      .panel.dashboard--uphold-statement
+        .col
+          .row.uphold-main-row
+            .col
+              = image_tag("/assets/download@1x.png", class: "")
+            .col.uphold-main-content
+              .row
+                = "Statement"
+              - if unused_statement_periods.length > 0
+                .row
+                  = form_for(current_publisher, url: generate_statement_publishers_path, html: { id: "statement_generator" }) do |f|
+                    = select_tag(:statement_period, options_for_select(statement_periods_as_options(unused_statement_periods), :past_30_days))
+                    a.edit-link#generate_statement href="#"
+                      = t ".statements.generate"
+          .row.uphold-main-row
+            .col
+              = image_tag("/assets/contact@1x.png", class: "")
+            .col.uphold-main-content
+              .row
+                = "Contact"
+              .row
+                a.edit-link#edit_contact href="#"
+                  = t ".contact.edit"
+          .row.uphold-main-row
+            .col
+              = "CHECK"
+            .col.uphold-main-content
+              .row
+                = "Allow brave to include you in marketing emails"
+  - current_publisher.channels.visible.each do |channel|
+    .dashboard--row
+      .dashboard--col
+        .panel
+          .col.dashboard--channel--thumbnail
+            img src=(channel_thumbnail_url(channel))
+          .col
+            .row
+              = "Channel Title"
+            .row
+              .col
+                = "added 10/12/2016"
+              .col
+                = "Remove channel"
+          .col
+            = "Referral Promo information"
 
-.double-panel--wrapper
-  .double-panel--content.double-panel--content--split.double-panel--content--split--no-background
-    = "(BALANCE)"
-  .double-panel--content.double-panel--content--split
-    = "(PROMO PANEL)"
-.double-panel--wrapper
-  .double-panel--content.double-panel--content--split
-    = "(UPHOLD 1)"
-  .double-panel--content.double-panel--content--split
-    = "(UPHOLD 2)"
-.double-panel--wrapper
-  .double-panel--content
-    = "(CHANNEL 1)"
-  .double-panel--content
-    = "(CHANNEL 2)"
 / .row
 /   .col.col-details.col-md-6.col-xs-10.col-xs-center.col-sm-center
 /     h4.balance-header = t ".balance_pending"

@@ -4,16 +4,24 @@ $brave-panels-borderRadius: 8px;
   padding: 0 15px;
 }
 
-.single-panel {
+// Generic panel
+// Used on the dashbaord
+.panel {
+  background-color: white;
+  border-radius: $brave-panels-borderRadius;
+  box-shadow: 2px 2px 0px 0px rgba(47,48,50,0.15);
+  display: flex;
+  min-height: 110px;
+  margin-bottom: 25px;
 
-  &--dashboard {
-    margin: 0 15px;
-    justify-content: center;
-    text-align: center;
-    background-color: white;
-    border-radius: $brave-panels-borderRadius;
-    box-shadow: 2px 2px 0px 0px rgba(47,48,50,0.15);
+  &--no-background {
+    background-color: unset;
+    border-radius: unset;
+    box-shadow: unset;
   }
+}
+
+.single-panel {
 
   &--wrapper {
     max-width: $spacer*40;
@@ -170,35 +178,6 @@ $brave-panels-borderRadius: 8px;
   }
 }
 
-.double-panel {
-
-  &--wrapper {
-    @include make-row();
-    justify-content: center;
-    text-align: center;
-  }
-
-  &--content {
-    @include make-col-ready();
-    @include make-col(10);
-
-    background-color: white;
-    border-radius: $brave-panels-borderRadius;
-    box-shadow: 2px 2px 0px 0px rgba(47,48,50,0.15);
-
-    &--split {
-      @include media-breakpoint-up(md) {
-        @include make-col(5);
-    }
-
-      &--no-background { // No white background
-        background-color: unset;
-        border-radius: unset;
-        box-shadow: unset;
-      }
-    }
-  }
-}
 
 .icon-and-text {
   &--wrapper {
