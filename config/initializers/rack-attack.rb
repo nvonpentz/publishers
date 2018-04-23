@@ -60,7 +60,7 @@ if Rails.env.production? || Rails.env.staging?
     end
 
     throttle("created-auth-tokens/ip", limit: 5, period: 20.seconds) do |req|
-      if req.path == "/publishers/log_in" && req.post?
+      if req.path == "/publishers/log_in" && req.post? || req.path == "/publishers/resend_auth_email" && req.post?
         req.ip
       end
     end
