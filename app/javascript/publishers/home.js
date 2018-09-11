@@ -6,6 +6,10 @@ import fetch from '../utils/fetchPolyfill';
 import flash from '../utils/flash';
 import { Wallet } from '../wallet';
 import { formatFullDate } from '../utils/dates';
+import {
+  renderDepositsBarChart,
+  renderContributionsDonutChart
+} from '../publishers/homeCharts'
 
 // ToDo - import resource strings
 const NO_CURRENCY_SELECTED = 'None selected';
@@ -113,7 +117,7 @@ function populateCurrencySelect(select, possibleCurrencies, selectedCurrency) {
   });
 }
 
-function refreshBalance() {
+function getWallet() {
   let options = {
     headers: {
         'Accept': 'application/json'
@@ -127,9 +131,15 @@ function refreshBalance() {
       if (response.status === 200 || response.status === 304) {
         return response.json();
       }
+    }).then(function(body) {
+      return new Wallet(body);
     })
-    .then(function(body) {
-      let wallet = new Wallet(body);
+}
+
+function refreshBalance() {
+  return getWallet()
+    .then(function(wallet) {
+      // let wallet = new Wallet(body);
 
       updateDefaultCurrencyValue(wallet);
 
@@ -292,10 +302,87 @@ function hideVerificationFailureWhatHappened(element) {
   elementToHide.style.display = "none"
 }
 
+function loadDashboardCharts() {
+  getWallet()
+    .then(function(wallet) {
+
+      let accountIdentifiers = Object.keys(wallet.channelBalances);
+      let amounts = {};
+      let channels = [];
+
+      accountIdentifiers.forEach(function(accountIdentifier) {
+        let channelTitle = document.querySelectorAll('[data-account-identifier=' + "'"+accountIdentifier+"'" + ']')[0].textContent;
+        channels.push(channelTitle);
+        amounts[channelTitle] = wallet.getChannelAmount(accountIdentifier).bat;
+      });
+
+      let colors = ['#e79895', '#5edaea', '#1db899'];
+
+      renderContributionsDonutChart({
+        parentSelector: '#contributions_chart',
+        channels,
+        colors,
+        amounts: amounts,
+        currency: 'BAT',
+        currencyConversion: 1.0,
+        altCurrency: 'USD',
+        altCurrencyConversion: 0.25,
+        width: 210,
+        height: 210,
+        margin: { left: 0, right: 250, top: 0, bottom: 0},
+        donutWidth: 30
+      });
+
+      // TODO: Connect with transactions endpoint
+      renderDepositsBarChart({
+        parentSelector: '#monthly_deposits_chart',
+        channels,
+        colors,
+        deposits: [
+          {
+            date: '7/30',
+            'AmazingBlog on YouTube': 63,
+            'amazingblog.com': 200,
+            'Amazon.com': 50
+          },
+          {
+            date: '8/30',
+            'AmazingBlog on YouTube': 150,
+            'amazingblog.com': 100,
+            'Amazon.com': 350
+          },
+          {
+            date: '9/30',
+            'AmazingBlog on YouTube': 63,
+            'amazingblog.com': 200,
+            'Amazon.com': 50
+          },
+          {
+            date: '10/31',
+            'AmazingBlog on YouTube': 150,
+            'amazingblog.com': 100,
+            'Amazon.com': 350
+          },
+          {
+            date: '11/30',
+            'amazingblog.com': 50,
+            'Amazon.com': 200
+          }
+        ],
+        currency: 'USD',
+        currencyConversion: 0.25,
+        height: 160,
+        margin: { left: 50, right: 50, top: 30, bottom: 30},
+      });
+    })
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   if (document.querySelectorAll('body[data-action="home"]').length === 0) {
     return;
   }
+
+  loadDashboardCharts();
 
   let upholdStatusElement = document.getElementById('uphold_status');
 

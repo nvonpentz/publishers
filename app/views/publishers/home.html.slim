@@ -25,6 +25,7 @@ script type="text/html" id="confirm_default_currency_modal_wrapper"
     .row
       .col
         .balance
+          .span data-account-identifier=(current_publisher.owner_identifier) style="display: none" = "Referral Promo"
           h4.balance-header
             span = t ".balance_pending"
           .float-left
@@ -229,7 +230,7 @@ script type="text/html" id="confirm_default_currency_modal_wrapper"
                     .bat-channel--period
                       = t(".channel_balance_period")            
               .channel-summary
-                h3= channel.publication_title
+                h3 data-account-identifier=(channel.details.channel_identifier) = channel.publication_title
                 .channel-details
                   .added-date
                     = t ".channel.added", date: channel.created_at.to_date.iso8601
