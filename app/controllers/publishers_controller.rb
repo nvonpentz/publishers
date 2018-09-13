@@ -451,6 +451,15 @@ class PublishersController < ApplicationController
     end
   end
 
+  def transactions
+    transactions = PublisherTransactionsGetter.new(publisher: current_publisher).perform
+    if transactions
+      render(json: transactions, status: :ok)
+    else
+      head 404
+    end
+  end
+
   private
 
   def create_uphold_card_for_default_currency_if_needed

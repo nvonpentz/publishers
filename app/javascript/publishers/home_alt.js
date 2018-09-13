@@ -319,34 +319,35 @@ function hideVerificationFailureWhatHappened(element) {
   elementToHide.style.display = "none"
 }
 
-// Returns a dictionary of account titles to account identifiers
+// Returns a dictionary of account identifiers to account titles
 // e.g.
 //
-function getPublisherAccountsIdentifiers(){
-  let accountIdentifiers = {};
+function getPublisherAccountTitlesDict(){
+  let accountTitlesDict = {};
   let channelElements = document.querySelectorAll('[data-account-identifier]')
+
   channelElements.forEach(function(e){
-    accountIdentifiers[e.textContent] = e.dataset.accountIdentifier;
+    accountTitlesDict[e.dataset.accountIdentifier] = e.textContent;
   });
 
-  return accountIdentifiers
+  return accountTitlesDict
 }
 
 function loadDashboardCharts() {
   getWallet()
     .then(function(wallet) {
 
-      let accountIdentifiers = getPublisherAccountsIdentifiers();
-      let channelTitles = Object.keys(accountIdentifiers);
+      let accountTitlesDict = getPublisherAccountTitlesDict();
+      let accountTitles = Object.values(accountTitlesDict);
       let amounts = {};
 
-      for(let channelTitle in accountIdentifiers) {
-        amounts[channelTitle] = wallet.getChannelAmount(accountIdentifiers[channelTitle]).bat;
+      for(let accountIdentifier in accountTitlesDict) {
+        amounts[accountTitlesDict[accountIdentifier]] = wallet.getChannelAmount(accountIdentifier).bat;
       }
 
       renderContributionsDonutChart({
         parentSelector: '#contributions_chart',
-        channels: channelTitles,
+        channels: accountTitles,
         colors,
         amounts: amounts,
         currency: 'BAT', 
@@ -362,12 +363,27 @@ function loadDashboardCharts() {
 
   getTransactions()
     .then(function(transactions) {
-      let channelTitles = Object.values(getPublisherAccountsIdentifiers());
+
+      let accountTitlesDict = getPublisherAccountTitlesDict();
+
+      // replace channelIdentifiers with channelTitles
+      let deposits = [];
+      transactions.forEach(function(settlement) {
+        let settlementWithAccountTitles = {};
+        for(let key in settlement) {
+          if(key === "date"){
+            settlementWithAccountTitles[key] = settlement[key];
+          } else {
+            settlementWithAccountTitles[accountTitlesDict[key]] = settlement[key] ;
+          }
+          deposits.push(settlementWithAccountTitles);
+        }
+      })
 
       renderDepositsBarChart({
         parentSelector: '#monthly_deposits_chart',
         deposits: transactions,
-        channels: channelTitles,
+        channels: Object.keys(accountTitlesDict),
         colors,
         currency: 'USD',
         currencyConversion: 0.25

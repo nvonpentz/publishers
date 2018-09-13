@@ -76,7 +76,7 @@ class PublisherBalanceGetter < BaseApiClient
       {
         "account_id" => "#{channel_id}",
         "account_type" => "channel",
-        "balance" => "0.00",
+        "balance" => "20.00",
       }
     end
 
@@ -85,7 +85,7 @@ class PublisherBalanceGetter < BaseApiClient
       accounts.push({
         "account_id" => "#{publisher.owner_identifier}",
         "account_type" => "owner",
-        "balance" => "0.00"
+        "balance" => "20.00"
       })
     end
 
