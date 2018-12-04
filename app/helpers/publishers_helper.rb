@@ -21,8 +21,8 @@ module PublishersHelper
 
   def publisher_humanize_balance(publisher, currency)
     if balance = publisher.wallet &&
-        publisher.wallet.contribution_balance.is_a?(Eyeshade::Balance) &&
-        publisher.wallet.contribution_balance
+        publisher.wallet.total_balance.is_a?(Eyeshade::Balance) &&
+        publisher.wallet.total_balance
       '%.2f' % balance.convert_to(currency)
     else
       I18n.t("helpers.publisher.balance_unavailable")
@@ -103,8 +103,8 @@ module PublishersHelper
   def publisher_channel_balance(publisher, channel_identifier, currency)
     if balance = (
         publisher.wallet &&
-        publisher.wallet.channel_balances &&
-        publisher.wallet.channel_balances[channel_identifier]
+        publisher.wallet.account_balances &&
+        publisher.wallet.account_balances[channel_identifier]
     )
       '%.2f' % balance.convert_to(currency)
     else
