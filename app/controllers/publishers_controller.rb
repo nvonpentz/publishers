@@ -422,6 +422,15 @@ class PublishersController < ApplicationController
     end
   end
 
+  def wallet
+    wallet = current_publisher.wallet
+    if wallet
+      render(json: wallet.to_json, status: :ok)
+    else
+      head 404
+    end
+  end
+  
   private
 
   def create_uphold_card_for_default_currency_if_needed

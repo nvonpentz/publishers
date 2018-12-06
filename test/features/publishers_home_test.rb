@@ -4,12 +4,9 @@ class PublishersHomeTest < Capybara::Rails::TestCase
   include Devise::Test::IntegrationHelpers
 
   test "name can be changed using 'edit contact' form" do
-    active_promo_id_original = Rails.application.secrets[:active_promo_id]
-    Rails.application.secrets[:active_promo_id] = ""
     publisher = publishers(:completed)
     sign_in publisher
 
-    # Turn off promo
     visit home_publishers_path
     assert_content page, publisher.name
     assert_content page, publisher.email
@@ -25,7 +22,7 @@ class PublishersHomeTest < Capybara::Rails::TestCase
     refute_content 'Update'
 
     # Ensure that form has been reset and can be resubmitted
-
+    page.evaluate_script 'window.location.reload()' # Refresh to remove spinner overlay to make button visible
     click_link('Edit Contact')
 
     new_name = 'Thomas the Tank Engine'
@@ -35,7 +32,6 @@ class PublishersHomeTest < Capybara::Rails::TestCase
 
     assert_content page, new_name
     refute_content 'Update'
-    Rails.application.secrets[:active_promo_id] = active_promo_id_original
   end
 
   test "email can be changed using 'edit contact' form" do
@@ -57,6 +53,7 @@ class PublishersHomeTest < Capybara::Rails::TestCase
     assert_content page, 'Pending: Email address has been updated to: ' + new_email
     refute_content 'Update'
 
+    page.evaluate_script 'window.location.reload()' # Refresh to remove spinner overlay to make button visible
     # Let's change it back to the original. The "pending" message should be removed.
     click_link 'Edit Contact'
     fill_in 'update_contact_email', with: original_email
@@ -98,8 +95,6 @@ class PublishersHomeTest < Capybara::Rails::TestCase
   test "website channel type can be chosen" do
     publisher = publishers(:completed)
     sign_in publisher
-
-    # Turn off promo
     visit home_publishers_path
 
     find('.navbar').click_link('+ Add Channel')

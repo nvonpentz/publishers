@@ -16,6 +16,7 @@ Rails.application.routes.draw do
       get :log_out
       get :email_verified
       get :balance
+      get :wallet
       get :uphold_verified
       get :suspended_error
       get :statement
@@ -113,8 +114,13 @@ Rails.application.routes.draw do
       # /api/v1/public/
       namespace :public, defaults: { format: :json } do
         get "channels", controller: "channels"
+        namespace :channels, defaults: { format: :json } do
+          get "totals"
+        end
+        namespace :publishers, defaults: { format: :json } do
+          get "totals"
+        end
       end
-
     end
   end
 
