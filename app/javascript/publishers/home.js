@@ -24,39 +24,41 @@ function showPendingContactEmail(pendingEmail) {
   }
 }
 
-function updateTotalContributionBalance(balance) {
+function updateOverallBalance(balance) {
   let batAmount = document.getElementById('bat_amount');
-  batAmount.innerText = balance.bat.toFixed(2);
+  batAmount.innerText = balance.amount_bat;
   let convertedAmount = document.getElementById('converted_amount');
 
-  convertedAmount.style.display = balance.currency === "BAT" || balance.currency === null ? 'none' : 'block';
-  convertedAmount.innerText = formatBalance(balance.converted, balance.currency);
-}
-
-function formatBalance(amount, currency) {
-  if (isNaN(amount)) {
-    return `${currency} ${UNAVAILABLE}`;
-  } else {
-    return `~ ${amount.toFixed(2)} ${currency}`;
+  if (!(balance.default_currency === "BAT" || balance.default_currency === null)) {
+    convertedAmount.style.display = 'block';
+    convertedAmount.innerText = formatBalance(balance.amount_default_currency, balance.default_currency);
   }
 }
 
-function updateLastSettlement(settlement) {
+function formatBalance(amount, currency) {
+  if (isNaN(amount) || amount === null ) {
+    return `${currency} ${UNAVAILABLE}`;
+  } else {
+    return `~ ${amount} ${currency}`;
+  }
+}
+
+function updateLastSettlement(lastSettlementBalance) {
   let lastSettlement = document.getElementById('last_settlement');
   let lastDepositDate = document.getElementById('last_deposit_date');
   let lastDepositBatAmount = document.getElementById('last_deposit_bat_amount');
   let lastDepositConvertedAmount = document.getElementById('last_deposit_converted_amount');
 
-  if (settlement.date) {
+  if (lastSettlementBalance.timestamp) {
     lastSettlement.classList.remove('no-settlement-made');
     lastSettlement.classList.add('settlement-made');
 
-    lastDepositDate.innerText = formatFullDate(settlement.date);
-    lastDepositBatAmount.innerText = settlement.amount.bat.toFixed(2);
-    lastDepositConvertedAmount.style.display = settlement.amount.currency === "BAT" || settlement.amount.currency === null ? 'none' : 'block';
-    lastDepositConvertedAmount.innerText = formatBalance(settlement.amount.converted, settlement.amount.currency);
-  }
-  else {
+    lastDepositDate.innerText = formatFullDate(new Date(lastSettlementBalance.timestamp * 1000)); // Convert to milliseconds
+
+    lastDepositBatAmount.innerText = lastSettlementBalance.amount_bat;
+    lastDepositConvertedAmount.style.display = lastSettlementBalance.settlement_currency === "BAT" || lastSettlementBalance.settlement_currency === null ? 'none' : 'block';
+    lastDepositConvertedAmount.innerText = formatBalance(lastSettlementBalance.amount_settlement_currency, lastSettlementBalance.settlement_currency);
+  } else {
     lastSettlement.classList.remove('settlement-made');
     lastSettlement.classList.add('no-settlement-made');
 
@@ -70,21 +72,21 @@ function updateChannelBalances(wallet) {
   for (let channelId in wallet.channelBalances) {
     let channelAmount = document.getElementById('channel_amount_bat_' + channelId);
     if (channelAmount) {
-      channelAmount.innerText = wallet.getChannelAmount(channelId).bat.toFixed(2);
+      channelAmount.innerText = wallet.channelBalances[channelId].amount_bat;
     }
   }
 }
 
 function updateDefaultCurrencyValue(wallet) {
   let upholdStatusElement = document.getElementById('uphold_status');
-  upholdStatusElement.setAttribute('data-default-currency', wallet.providerWallet.defaultCurrency || '');
+  upholdStatusElement.setAttribute('data-default-currency', wallet.defaultCurrency || '');
 
   let defaultCurrencyDisplay = document.getElementById('default_currency_code');
-  defaultCurrencyDisplay.innerText = wallet.providerWallet.defaultCurrency || NO_CURRENCY_SELECTED;
+  defaultCurrencyDisplay.innerText = wallet.defaultCurrency || NO_CURRENCY_SELECTED;
 }
 
 function updatePossibleCurrencies(wallet) {
-  let possibleCurrencies = wallet.providerWallet.possibleCurrencies || [];
+  let possibleCurrencies = wallet.possibleCurrencies;
   let upholdStatusElement = document.getElementById('uphold_status');
   upholdStatusElement.setAttribute('data-possible-currencies', JSON.stringify(possibleCurrencies));
 }
@@ -123,28 +125,29 @@ function refreshBalance() {
     method: 'GET'
   };
 
-  return fetchAfterDelay('./balance', 500)
+  return fetchAfterDelay('./wallet', 500)
     .then(function(response) {
       if (response.status === 200 || response.status === 304) {
         return response.json();
       }
     })
     .then(function(body) {
+
       let wallet = new Wallet(body);
 
       updateDefaultCurrencyValue(wallet);
 
       updatePossibleCurrencies(wallet);
 
-      let contributionAmount = wallet.totalAmount;
-      updateTotalContributionBalance(contributionAmount);
+      let overallBalance = wallet.overallBalance;
+      updateOverallBalance(overallBalance);
 
-      let lastSettlement = wallet.lastSettlement;
-      updateLastSettlement(lastSettlement);
+      let lastSettlementBalance = wallet.lastSettlementBalance;
+      updateLastSettlement(lastSettlementBalance);
 
       updateChannelBalances(wallet);
 
-      if (!wallet.providerWallet.defaultCurrency && wallet.providerWallet.authorized) {
+      if (!wallet.defaultCurrency && wallet.authorized) {
         openDefaultCurrencyModal();
       }
     });
@@ -298,13 +301,15 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
 
+  refreshBalance();
+
   let upholdStatusElement = document.getElementById('uphold_status');
 
   if (upholdStatusElement.classList.contains('uphold-processing')) {
     checkUpholdStatusInterval = window.setInterval(checkUpholdStatus, 2000);
 
   } else if (upholdStatusElement.getAttribute('data-open-confirm-default-currency-modal') === 'true') {
-    openDefaultCurrencyModal();
+    // openDefaultCurrencyModal();
   }
 
   let removeChannelLinks = document.querySelectorAll('a.remove-channel');

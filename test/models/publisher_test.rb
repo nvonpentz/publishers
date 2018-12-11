@@ -7,6 +7,14 @@ class PublisherTest < ActiveSupport::TestCase
   include MailerTestHelper
   include PromosHelper
 
+  before(:example) do
+    @prev_offline = Rails.application.secrets[:api_eyeshade_offline]
+  end
+
+  after(:example) do
+    Rails.application.secrets[:api_eyeshade_offline] = @prev_offline
+  end
+
   test "verified publishers have both a name and email and have agreed to the TOS" do
     publisher = Publisher.new
     refute publisher.email_verified?
@@ -150,11 +158,23 @@ class PublisherTest < ActiveSupport::TestCase
   end
 
   test "when wallet is gotten the default currency will be sent to eyeshade if it is mismatched" do
+    Rails.application.secrets[:api_eyeshade_offline] = false
     publisher = publishers(:verified)
-    publisher.default_currency = "CAD"
+    publisher.default_currency = "USD"
 
-    assert_enqueued_jobs(1) do
-      assert_equal "USD", publisher.wallet.default_currency
+    wallet = {
+      defaultCurrency: "CAD"
+    }
+
+    stub_request(:get, %r{v1/owners/#{URI.escape(publisher.owner_identifier)}/wallet}).
+      with(headers: {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Faraday v0.9.2'}).
+      to_return(status: 200, body: wallet.to_json, headers: {})
+
+    stub_request(:get, "#{Rails.application.secrets[:api_eyeshade_base_uri]}/v1/accounts/balances?account=publishers%23uuid:8f3ae7ad-2842-53fd-8b63-c843afe1a33a&account=verified.org").
+      to_return(status: 200, body: [].to_json)
+
+    assert_enqueued_with(job: UploadDefaultCurrencyJob) do 
+      publisher.wallet.default_currency
     end
   end
 

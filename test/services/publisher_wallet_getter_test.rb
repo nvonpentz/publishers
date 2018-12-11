@@ -68,9 +68,11 @@ class PublisherWalletGetterTest < ActiveJob::TestCase
     channel_balances_response = [
       {
         "account_id" => "completed.org",
-        "balance" => "25.00"
+        "balance" => "25.00",
+        "account_type" => "channel"
       },
       {
+        "accont_type" => "channel",
         "account_id" => "youtube#channeldef456",
         "balance" => "10014"
       }
@@ -83,11 +85,7 @@ class PublisherWalletGetterTest < ActiveJob::TestCase
 
     assert result.kind_of?(Eyeshade::Wallet)
     assert_equal "USD", result.default_currency
-
-    assert_equal(
-      25.0,
-      result.channel_balances["completed.org"].BAT
-    )
+    assert_equal "23.75", result.channel_balances["completed.org"].amount_bat
   end
 
   test "when online only returns channel balances for verified channels and owner" do
@@ -116,11 +114,11 @@ class PublisherWalletGetterTest < ActiveJob::TestCase
 
     result = PublisherWalletGetter.new(publisher: publisher).perform
 
-    # Ensure the wallet getter only returns channel balance for the verified channel and owner
-    assert result.channel_balances.count == 2 
+    # Ensure the wallet getter only returns channel balance for the verified channel
+    assert result.channel_balances.count == 1
   end
 
-  test "overall balance is sum of channel and owner accounts" do
+  test "overall balance is sum of channel accounts (fee applied) and owner account (no fee)" do
     Rails.application.secrets[:api_eyeshade_offline] = false
     publisher = publishers(:uphold_connected)
 
@@ -168,7 +166,10 @@ class PublisherWalletGetterTest < ActiveJob::TestCase
       
     wallet = PublisherWalletGetter.new(publisher: publisher).perform
 
-    assert_equal wallet.contribution_balance.amount, 80
-    assert_equal wallet.contribution_balance.probi,  80 * BigDecimal.new('1.0e18')
+    channel_amount_after_fees = (20 - 20 * Rails.application.secrets[:fee_rate])
+    owner_amounts_after_fees = 20
+    overall_amount_after_fees = '%.2f' % (channel_amount_after_fees * 3 + owner_amounts_after_fees).to_s
+    assert_equal wallet.overall_balance.amount_bat, overall_amount_after_fees
+    assert_equal wallet.overall_balance.amount_probi,  (overall_amount_after_fees.to_d * BigDecimal.new('1.0e18')).to_i.to_s
   end
 end
